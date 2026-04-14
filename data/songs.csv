@@ -1,11 +1,25 @@
-id,title,artist,genre,mood,energy,tempo_bpm,valence,danceability,acousticness
-1,Sunrise City,Neon Echo,pop,happy,0.82,118,0.84,0.79,0.18
-2,Midnight Coding,LoRoom,lofi,chill,0.42,78,0.56,0.62,0.71
-3,Storm Runner,Voltline,rock,intense,0.91,152,0.48,0.66,0.10
-4,Library Rain,Paper Lanterns,lofi,chill,0.35,72,0.60,0.58,0.86
-5,Gym Hero,Max Pulse,pop,intense,0.93,132,0.77,0.88,0.05
-6,Spacewalk Thoughts,Orbit Bloom,ambient,chill,0.28,60,0.65,0.41,0.92
-7,Coffee Shop Stories,Slow Stereo,jazz,relaxed,0.37,90,0.71,0.54,0.89
-8,Night Drive Loop,Neon Echo,synthwave,moody,0.75,110,0.49,0.73,0.22
-9,Focus Flow,LoRoom,lofi,focused,0.40,80,0.59,0.60,0.78
-10,Rooftop Lights,Indigo Parade,indie pop,happy,0.76,124,0.81,0.82,0.35
+id,title,artist,genre,mood,energy,tempo_bpm,valence,danceability,acousticness,instrumentalness
+1,Sunrise City,Neon Echo,pop,happy,0.82,118,0.84,0.79,0.18,0.05
+2,Midnight Coding,LoRoom,lofi,chill,0.42,78,0.56,0.62,0.71,0.60
+3,Storm Runner,Voltline,rock,intense,0.91,152,0.48,0.66,0.10,0.15
+4,Library Rain,Paper Lanterns,lofi,chill,0.35,72,0.60,0.58,0.86,0.75
+5,Gym Hero,Max Pulse,pop,intense,0.93,132,0.77,0.88,0.05,0.05
+6,Spacewalk Thoughts,Orbit Bloom,ambient,chill,0.28,60,0.65,0.41,0.92,0.88
+7,Coffee Shop Stories,Slow Stereo,jazz,relaxed,0.37,90,0.71,0.54,0.89,0.50
+8,Night Drive Loop,Neon Echo,synthwave,moody,0.75,110,0.49,0.73,0.22,0.72
+9,Focus Flow,LoRoom,lofi,focused,0.40,80,0.59,0.60,0.78,0.85
+10,Rooftop Lights,Indigo Parade,indie pop,happy,0.76,124,0.81,0.82,0.35,0.10
+11,Sapphire,Alcest,post-metal,emotional,0.60,100,0.30,0.35,0.25,0.60
+12,Doomsday,Architects,metalcore,intense,0.80,140,0.35,0.45,0.05,0.10
+13,The Silent Life,Rivers of Nihil,progressive metal,reflective,0.70,115,0.30,0.40,0.12,0.35
+14,Dream House,Deafheaven,blackgaze,emotional,0.90,160,0.25,0.30,0.08,0.45
+15,Nightcall,Kavinsky,synthwave,dark,0.50,104,0.40,0.65,0.05,0.30
+16,Turbo Killer,Carpenter Brut,synthwave,aggressive,0.80,130,0.25,0.60,0.03,0.90
+17,Running in the Night,FM-84,synthwave,nostalgic,0.70,120,0.65,0.70,0.05,0.20
+18,Space Song,Beach House,dream pop,chill,0.40,85,0.52,0.40,0.45,0.15
+19,Wait,M83,ambient,emotional,0.30,75,0.55,0.35,0.55,0.40
+20,Holocene,Bon Iver,indie folk,reflective,0.30,78,0.38,0.38,0.72,0.08
+21,Theme of Laura,Akira Yamaoka,soundtrack,dark,0.20,60,0.20,0.15,0.80,0.95
+22,Time,Hans Zimmer,soundtrack,epic,0.60,52,0.45,0.20,0.70,0.98
+23,Blinding Lights,The Weeknd,pop,fun,0.90,171,0.68,0.89,0.05,0.05
+24,Take On Me,a-ha,pop,fun,0.80,169,0.82,0.80,0.08,0.05
