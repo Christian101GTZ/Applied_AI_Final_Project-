@@ -13,6 +13,13 @@ Your goal is to:
 
 This recommender does not just match songs by genre or mood label. It tries to understand what kind of experience a listener is looking for — how they want to feel, what kind of atmosphere they want to be in, and what the music should do for them emotionally. A song is scored based on how well it creates that experience, not just whether it fits a category. The system looks at things like emotional weight, how immersive the sound is, and whether the song builds over time before deciding what to recommend.
 
+<img width="960" height="1020" alt="Screenshot 2026-04-13 180953" src="https://github.com/user-attachments/assets/3368d008-f323-49e3-b750-e8094669fdfb" />
+<img width="960" height="1020" alt="Screenshot 2026-04-13 181011" src="https://github.com/user-attachments/assets/4e9b792b-a4f0-4634-851b-176f870f00e1" />
+<img width="960" height="1020" alt="Screenshot 2026-04-13 181026" src="https://github.com/user-attachments/assets/d4bf991b-4873-4d72-a8e8-d4a9545db510" />
+<img width="960" height="1020" alt="Screenshot 2026-04-13 181038" src="https://github.com/user-attachments/assets/eaba4ba9-22b4-4e73-b0f7-b48e3dcbf0e5" />
+<img width="960" height="1020" alt="Screenshot 2026-04-13 181059" src="https://github.com/user-attachments/assets/bbdfd723-2348-42ed-91ed-96ead74b82e9" />
+<img width="960" height="1020" alt="Screenshot 2026-04-13 181121" src="https://github.com/user-attachments/assets/26554742-0208-49e4-8245-84cd81d7cdd4" />
+
 ---
 
 ## How The System Works
@@ -72,6 +79,7 @@ Maximum possible score: approximately 10.0. Most songs will score between 2 and 
 - Genre and mood families reflect a specific cultural grouping. Placing metalcore and post-metal in the same family, or happy and fun in the same family, is a judgment call that may not match every listener's view.
 - The context layer only activates when optional fields are filled in. A user who only sets genre and mood gets a shallower score, which means two very different songs could tie even if one is clearly a better fit.
 - There is no diversity mechanism. The top five results could all be very similar songs if they share the same genre and mood. A real recommender would penalize repetition.
+<img width="1920" height="1020" alt="Test with Diverse Profiles" src="https://github.com/user-attachments/assets/30865251-bab7-412f-8d89-0773b0b24301" />
 
 ---
 
