@@ -112,25 +112,26 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Experiments You Tried
 
-Use this section to document the experiments you ran. For example:
+**Weight Shift Experiment — doubled energy, halved genre**
 
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-- How did your system behave for different types of users
+The genre weight was changed from +2.0 to +1.0 and the energy weight was doubled from +1.0 to +2.0. The results got worse. For the High-Energy Pop profile, Blinding Lights jumped to #1 over Sunrise City — even though Sunrise City matched genre, mood, AND energy. A dark synthwave song (Nightcall) tied with a happy pop song for the same user profile purely because their energy numbers were close. The original weights were restored because energy alone does not capture what a song feels like.
+
+**Adversarial Profiles**
+
+Four edge case profiles were tested to find where the system breaks:
+- A user who asked for lofi music but with energy 0.9 — the system ignored the contradiction and returned slow quiet songs anyway
+- A jazz user — one perfect match at 4.50, then everything else dropped to 1.75 because only one jazz song exists in the catalog
+- A user with energy 0.5 — almost no songs are near that value so energy points barely fired, making the preference useless
+- A user asking for classical — not in the catalog at all, so the system returned five unrelated songs tied on energy alone
 
 ---
 
 ## Limitations and Risks
 
-Summarize some limitations of your recommender.
-
-Examples:
-
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
-
-You will go deeper on this in your model card.
+- The catalog only has 24 songs so rare genres like jazz have almost no variety in results
+- Genre is worth the most points so it can override mood and energy even when those feel more important
+- The system cannot detect when a user's preferences contradict each other — it just quietly ignores the conflict
+- It does not understand lyrics, language, or what a song actually sounds like — only the numbers in the CSV
 
 ---
 
@@ -140,10 +141,9 @@ Read and complete `model_card.md`:
 
 [**Model Card**](model_card.md)
 
-Write 1 to 2 paragraphs here about what you learned:
+Building this showed me that getting the code to work is only half the problem. The scoring logic worked exactly as designed, but some results still felt wrong — not because the code was broken, but because the data was unbalanced or the weights were off. That was unexpected. I assumed getting the math right was the hard part, but choosing what to score and how much weight to give each thing turned out to matter just as much.
 
-- about how recommenders turn data into predictions
-- about where bias or unfairness could show up in systems like this
+The bias part surprised me the most. A user who wants mid-range energy gets worse recommendations than someone who wants high or low energy — not because of a bug, but because of how the songs happen to be distributed in the catalog. That kind of unfairness is invisible unless you actually test for it. It made me think differently about real apps like Spotify — when a recommendation feels off, it is probably the system making a trade-off, not a mistake.
 
 
 ---
@@ -159,7 +159,7 @@ Combines reflection and model card framing from the Module 3 guidance. :contentR
 
 Give your recommender a name, for example:
 
-> VibeFinder 1.0
+> VibeCheck
 
 ---
 
@@ -254,3 +254,5 @@ A few sentences about what you learned:
 - Where do you think human judgment still matters, even if the model seems "smart"
 
 The biggest learning moment for me was realizing that getting the code to work is only half the problem. I spent a lot of time thinking about the scoring logic, but when I actually ran it, the results sometimes felt wrong even though the math was correct. That taught me that the data and the weights matter just as much as the code itself. Using AI tools helped me move faster, especially when I was figuring out how to structure the scoring system and what the algorithm recipe should look like. But I still had to double-check things.What surprised me most was how a system with only three rules -- genre, mood, and energy -- could actually feel like it was making real recommendations. When Sunrise City came up as the top result for the pop/happy profile, it genuinely felt right. But then when I ran the conflict profile and got quiet lofi songs for someone who asked for high energy, it reminded me that the system has no common sense. It just follows the math.
+If I extended this project I would want to add more songs to the catalog so rare genres have more than one match, and I would want the system to warn the user when their preferences don't match anything in the catalog. 
+
