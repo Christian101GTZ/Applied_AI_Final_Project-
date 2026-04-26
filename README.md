@@ -1,266 +1,246 @@
-# 🎵 Music Recommender Simulation
+# VibeCheck — AI-Powered Music Recommender
 
-## Project Summary
+## Title and Summary
 
-In this project you will build and explain a small music recommender system.
+**VibeCheck** is an AI-powered music recommender. Describe how you want to feel — *"something dark and cinematic for a late night drive"* — and it figures out the rest.
 
-Your goal is to:
+A Gemini-powered agent interprets your request, scores a curated catalog of 300 tracks, and evaluates the results before surfacing them. Every recommendation includes a plain-language explanation and a direct YouTube link.
 
-- Represent songs and a user "taste profile" as data
-- Design a scoring rule that turns that data into recommendations
-- Evaluate what your system gets right and wrong
-- Reflect on how this mirrors real world AI recommenders
-
-This recommender does not just match songs by genre or mood label. It tries to understand what kind of experience a listener is looking for — how they want to feel, what kind of atmosphere they want to be in, and what the music should do for them emotionally. A song is scored based on how well it creates that experience, not just whether it fits a category. The system looks at things like emotional weight, how immersive the sound is, and whether the song builds over time before deciding what to recommend.
-
-<img width="960" height="1020" alt="Screenshot 2026-04-13 180953" src="https://github.com/user-attachments/assets/3368d008-f323-49e3-b750-e8094669fdfb" />
-<img width="960" height="1020" alt="Screenshot 2026-04-13 181011" src="https://github.com/user-attachments/assets/4e9b792b-a4f0-4634-851b-176f870f00e1" />
-<img width="960" height="1020" alt="Screenshot 2026-04-13 181026" src="https://github.com/user-attachments/assets/d4bf991b-4873-4d72-a8e8-d4a9545db510" />
-<img width="960" height="1020" alt="Screenshot 2026-04-13 181038" src="https://github.com/user-attachments/assets/eaba4ba9-22b4-4e73-b0f7-b48e3dcbf0e5" />
-<img width="960" height="1020" alt="Screenshot 2026-04-13 181059" src="https://github.com/user-attachments/assets/bbdfd723-2348-42ed-91ed-96ead74b82e9" />
-<img width="960" height="1020" alt="Screenshot 2026-04-13 181121" src="https://github.com/user-attachments/assets/26554742-0208-49e4-8245-84cd81d7cdd4" />
+VibeCheck integrates three AI features in one app — Retrieval-Augmented Generation, an Agentic Workflow, and a Reliability/Testing System — making it usable by anyone without technical knowledge.
 
 ---
 
-## How The System Works
+## Original Project — Modules 1–3
 
-Real-world recommenders like Spotify figure out what to play next by either looking at what similar users enjoyed (collaborative filtering) or by comparing the qualities of songs directly (content-based filtering). This simulation uses content-based filtering — it looks at each song's attributes and matches them to what the user is looking for. My version prioritizes how a song feels over time rather than just its genre label, focusing on emotional weight, atmosphere, and how immersive the listening experience is.
+This builds on **VibeCheck 1.0**, a rule-based CLI recommender from Modules 1–3. That version had no AI, required numeric inputs, and ran on 24 hardcoded songs. It showed where content-based filtering succeeds and where it breaks down.
 
-**Song features used:**
-- `genre` — musical style
-- `mood` — emotional label
-- `energy` — intensity from 0.0 to 1.0
-- `valence` — brightness vs darkness from 0.0 to 1.0
-- `acousticness` — acoustic vs electronic feel from 0.0 to 1.0
-- `danceability` — movement suitability from 0.0 to 1.0
-- `tempo_bpm` — speed in beats per minute
-
-**UserProfile features used:**
-- `favorite_genre` — the genre the user prefers
-- `favorite_mood` — the mood they are looking for
-- `target_energy` — their preferred energy level from 0.0 to 1.0
-- `target_valence` — how dark or bright they want the music from 0.0 (dark) to 1.0 (bright)
-- `likes_acoustic` — whether they prefer acoustic or electronic sound
-- `emotional_purpose` — why they are listening: release, escape, reflection, or focus
-- `listening_mode` — how they are listening: focused or immersive
-- `environment_fit` — the context they are listening in: night drive, alone thinking, background, or workout
-- `intensity_type` — the kind of intensity they want: aggressive, atmospheric, aesthetic, emotional, or hybrid
-
-**Algorithm Recipe:**
-
-Each song is scored against the user profile in two layers. The final score determines its rank in the playlist.
-
-*Base layer — always applied:*
-
-| Attribute | Exact match | Partial match (same family) |
-|---|---|---|
-| Genre | +2.0 | +1.0 |
-| Mood | +1.5 | +0.75 |
-| Energy | +1.0 (diff ≤ 0.10) | +0.5 (diff ≤ 0.25) |
-| Valence | +1.0 (diff ≤ 0.10) | +0.5 (diff ≤ 0.25) |
-| Acoustic preference | +0.5 | — |
-
-Genre family examples: lofi, ambient, and dream pop are in the same family. Rock, metalcore, and post-metal are in the same family. Mood family examples: happy and fun are positive. Chill, relaxed, and focused are calm. Moody, dark, emotional, and reflective are dark.
-
-*Context layer — only fires when the user sets the optional profile fields:*
-
-| Field | What it rewards | Max points |
-|---|---|---|
-| `emotional_purpose` | Instrumentalness for focus; energy + danceability for release; acousticness for escape; quiet tone for reflection | +1.0 |
-| `listening_mode` | High instrumentalness + acousticness for immersive; instrumentalness alone for focused | +0.75 |
-| `environment_fit` | Energy + tempo for workout; rhythm for night drive; quiet acoustics for alone thinking; instrumentalness for background | +1.0 |
-| `intensity_type` | Energy + low valence for aggressive; acousticness for atmospheric; danceability + valence for aesthetic; dark mood for emotional | +0.75 |
-
-Maximum possible score: approximately 10.0. Most songs will score between 2 and 6. A song that only matches genre and mood will score at most 3.5. A song that also fits the user's context can reach 7 or higher.
-
-**Potential Biases:**
-
-- The system may over-reward genre matches and bury songs that fit the user's mood and context perfectly but belong to an unfamiliar genre. A user who says they want focus music might miss *Time* by Hans Zimmer (soundtrack) if they only listed lofi as their genre.
-- Genre and mood families reflect a specific cultural grouping. Placing metalcore and post-metal in the same family, or happy and fun in the same family, is a judgment call that may not match every listener's view.
-- The context layer only activates when optional fields are filled in. A user who only sets genre and mood gets a shallower score, which means two very different songs could tie even if one is clearly a better fit.
-- There is no diversity mechanism. The top five results could all be very similar songs if they share the same genre and mood. A real recommender would penalize repetition.
-<img width="1920" height="1020" alt="Test with Diverse Profiles" src="https://github.com/user-attachments/assets/30865251-bab7-412f-8d89-0773b0b24301" />
+This version keeps the scoring foundation and adds a Gemini AI layer, a Streamlit chat interface, a 300-song catalog across 78 genres, and three integrated AI features that address every gap the original exposed.
 
 ---
 
-## Getting Started
+## System Architecture
 
-### Setup
+![System Architecture](assets/system_architecture.png)
 
-1. Create a virtual environment (optional but recommended):
+Six components run in sequence:
 
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate      # Mac or Linux
-   .venv\Scripts\activate         # Windows
+1. **Streamlit UI** — chat interface; returns song cards with explanations and YouTube links.
+2. **Gemini Agent** — parses natural language into structured preferences; asks one clarifying question if the request is ambiguous.
+3. **RAG Retriever** — retrieves catalog candidates before generation (retrieve first, then generate).
+4. **Recommender Engine** — scores songs on genre, mood, energy, and lyrical fields using weighted rules.
+5. **Gemini Evaluator** — checks confidence, flags weak matches, detects contradictions, and verifies playlist cohesion before results are shown.
+6. **Logger** — writes every request, API call, score, and error to a structured log file.
 
-2. Install dependencies
+Users interact at two points: the initial request and the feedback loop (Like/Skip, which the agent uses to adjust).
 
+---
+
+## Setup Instructions
+
+### Requirements
+
+- Python 3.10 or higher
+- A Google AI API key
+
+
+
+### Step-by-Step Setup
+
+**1. Clone the repository**
+```bash
+git clone https://github.com/Christian101GTZ/Applied_AI_Final_Project-.git
+cd Applied_AI_Final_Project-
+```
+
+**2. Create and activate a virtual environment**
+```bash
+python -m venv .venv
+
+# Mac or Linux
+source .venv/bin/activate
+
+# Windows
+.venv\Scripts\activate
+```
+
+**3. Install dependencies**
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Run the app:
+**4. Set up your API key**
 
-```bash
-python -m src.main
+Create a file named `.env` in the project root with the following content:
+```
+GOOGLE_API_KEY=your-api-key-here
 ```
 
-### Running Tests
+This file is listed in `.gitignore` and will never be pushed to GitHub.
 
-Run the starter tests with:
+**5. Run the application**
+```bash
+streamlit run app.py
+```
 
+Your browser will open automatically at `http://localhost:8501`.
+
+**6. Run the test suite**
 ```bash
 pytest
 ```
 
-You can add more tests in `tests/test_recommender.py`.
+---
+
+## Sample Interactions
+
+Raw scoring output is shown below. In the full app, Gemini replaces these rule strings with natural language explanations.
 
 ---
 
-## Experiments You Tried
+**Example 1 — Strong match: High-Energy Pop**
 
-**Weight Shift Experiment — doubled energy, halved genre**
+User profile: genre = pop, mood = happy, energy = 0.92
 
-The genre weight was changed from +2.0 to +1.0 and the energy weight was doubled from +1.0 to +2.0. The results got worse. For the High-Energy Pop profile, Blinding Lights jumped to #1 over Sunrise City — even though Sunrise City matched genre, mood, AND energy. A dark synthwave song (Nightcall) tied with a happy pop song for the same user profile purely because their energy numbers were close. The original weights were restored because energy alone does not capture what a song feels like.
+```
+#1  Happy -- Pharrell Williams
+    Genre: pop | Mood: happy | Energy: 0.82
+    Score: 4.50
+    Why: genre match (+2.0); mood match (+1.5); energy close match: 0.82 ~= 0.92 (+1.0)
 
-**Adversarial Profiles**
+#2  Watermelon Sugar -- Harry Styles
+    Genre: pop | Mood: happy | Energy: 0.80
+    Score: 4.00
+    Why: genre match (+2.0); mood match (+1.5); energy partial match: 0.80 near 0.92 (+0.5)
 
-Four edge case profiles were tested to find where the system breaks:
-- A user who asked for lofi music but with energy 0.9 — the system ignored the contradiction and returned slow quiet songs anyway
-- A jazz user — one perfect match at 4.50, then everything else dropped to 1.75 because only one jazz song exists in the catalog
-- A user with energy 0.5 — almost no songs are near that value so energy points barely fired, making the preference useless
-- A user asking for classical — not in the catalog at all, so the system returned five unrelated songs tied on energy alone
+#3  Blinding Lights -- The Weeknd
+    Genre: pop | Mood: fun | Energy: 0.90
+    Score: 3.75
+    Why: genre match (+2.0); similar mood: fun is in the same family as happy (+0.75); energy close match: 0.90 ~= 0.92 (+1.0)
+```
+
+Happy ranked first (all three dimensions matched). Watermelon Sugar second (weaker energy match). Blinding Lights third — closer in energy but only a partial mood match.
 
 ---
 
-## Limitations and Risks
+**Example 2 — Edge case: Contradicting preferences**
 
-- The catalog only has 24 songs so rare genres like jazz have almost no variety in results
-- Genre is worth the most points so it can override mood and energy even when those feel more important
-- The system cannot detect when a user's preferences contradict each other — it just quietly ignores the conflict
-- It does not understand lyrics, language, or what a song actually sounds like — only the numbers in the CSV
+User profile: genre = lofi, mood = chill, energy = 0.90
+
+```
+#1  Aruarian Dance -- Nujabes
+    Genre: lofi | Mood: chill | Energy: 0.38
+    Score: 3.50
+    Why: genre match (+2.0); mood match (+1.5); no energy points — too far from 0.90
+
+#2  South of the River -- Tom Misch ft. Loyle Carner
+    Genre: lofi | Mood: chill | Energy: 0.35
+    Score: 3.50
+    Why: genre match (+2.0); mood match (+1.5); no energy points — too far from 0.90
+```
+
+Genre and mood outweigh energy in the point totals, so the rule engine returns quiet lofi regardless. The Gemini Agent catches this before scoring and warns: *"Your energy preference (0.90) conflicts with lofi — most lofi songs sit between 0.28 and 0.42."*
+
+---
+
+**Example 3 — Rare genre: Jazz**
+
+User profile: genre = jazz, mood = relaxed, energy = 0.37
+
+```
+#1  Come Away With Me -- Norah Jones
+    Genre: jazz | Mood: relaxed | Energy: 0.38
+    Score: 4.50
+    Why: genre match (+2.0); mood match (+1.5); energy close match: 0.38 ~= 0.37 (+1.0)
+
+#2  Take Five -- Dave Brubeck Quartet
+    Genre: jazz | Mood: relaxed | Energy: 0.45
+    Score: 4.50
+    Why: genre match (+2.0); mood match (+1.5); energy close match: 0.45 ~= 0.37 (+1.0)
+
+#3  Don't Know Why -- Norah Jones
+    Genre: jazz | Mood: chill | Energy: 0.38
+    Score: 3.75
+    Why: genre match (+2.0); similar mood: chill is in the same family as relaxed (+0.75); energy close match: 0.38 ~= 0.37 (+1.0)
+```
+
+With 9 jazz songs in the catalog, the profile returns genuine variety — compared to the single match it found in the original 24-song version.
+
+---
+
+## Design Decisions
+
+**Why content-based filtering instead of collaborative filtering**
+
+Collaborative filtering needs user history from many people. This system has none. Content-based filtering works from song attributes alone, so it can recommend immediately for any new user. The trade-off: it can't surface things the user didn't already describe wanting.
+
+**Why Gemini instead of a simpler model**
+
+"Something relaxing but with intense lyrics" describes two dimensions at once — sonic texture and lyrical weight. A keyword matcher can't separate those. Gemini understands the nuance, asks one clarifying question when needed, and writes explanations that sound human rather than algorithmic.
+
+**Why separate lyrical fields from mood**
+
+*Holocene* by Bon Iver sounds calm but carries heavy lyrical weight. A single `mood` field can't capture that. Separate `lyrical_intensity` and `lyrical_theme` fields let the system handle requests like *"calm to study to but with meaningful lyrics"* without conflating the two.
+
+**Why a curated catalog instead of a larger database**
+
+Importing thousands of songs from an API introduces noise — mislabeled moods, inaccurate energy values, genre tags that don't match the listening experience. The 300-song catalog spans 78 genres and keeps the system's behavior predictable and testable.
+
+**Why Streamlit instead of a custom web framework**
+
+The entire app runs in a browser from a single Python file with no frontend code. For a project focused on AI logic, that removes unnecessary friction. The trade-off is limited UI customization, which doesn't matter here.
+
+---
+
+## Testing Summary
+
+**What worked**
+
+The scoring algorithm held up across all standard profiles — pop, lofi, rock, and synthwave users consistently got a top pick matching all three dimensions. The family system surfaced related songs (indie pop for pop users, dream pop for ambient users) without needing exact matches.
+
+The 78-genre catalog fixed the most significant failure from the original version. Jazz previously returned one good match and four unrelated songs. With 9 jazz songs and 8 genre families, niche requests now have real candidates.
+
+**What failed**
+
+The scoring engine has no way to detect conflicting preferences. A lofi request with energy 0.9 still returns quiet lofi songs because genre and mood score more points than energy. This is intentionally delegated to the Gemini Agent, which warns the user at input time rather than silently returning bad results.
+
+Doubling the energy weight and halving the genre weight made things worse — a dark synthwave song tied with a happy pop song purely on energy proximity. Emotional fit can't be captured by one number.
+
+**What was learned**
+
+A scoring system can be mathematically correct and still feel wrong. When *Nightcall* ranked above *Sunrise City* for a happy pop user, the algorithm did nothing wrong — the weights just didn't capture what "fitting" means. That's the core reason for the Gemini evaluation layer: the engine picks candidates, and Gemini checks whether they actually make sense.
 
 ---
 
 ## Reflection
 
-Read and complete `model_card.md`:
+The hardest part of building VibeCheck wasn't the model — it was the layer between the human and the model. Getting Gemini to return JSON is easy. Getting it to ask exactly one useful question, understand that *"something intense"* could mean Kendrick Lamar or Hans Zimmer, and evaluate whether five songs work as a playlist rather than five isolated picks — that's where the real work is.
 
-[**Model Card**](model_card.md)
+Data quality and weight selection matter as much as the algorithm. No scoring formula knows that a user who says "chill" but always skips songs below 100 BPM means something different by chill than the label implies. That's what the AI layer is for.
 
-Building this showed me that getting the code to work is only half the problem. The scoring logic worked exactly as designed, but some results still felt wrong — not because the code was broken, but because the data was unbalanced or the weights were off. That was unexpected. I assumed getting the math right was the hard part, but choosing what to score and how much weight to give each thing turned out to matter just as much.
-
-The bias part surprised me the most. A user who wants mid-range energy gets worse recommendations than someone who wants high or low energy — not because of a bug, but because of how the songs happen to be distributed in the catalog. That kind of unfairness is invisible unless you actually test for it. It made me think differently about real apps like Spotify — when a recommendation feels off, it is probably the system making a trade-off, not a mistake.
-
+The biggest lesson: a system that *works* returns results. A system that *feels intelligent* returns results that make sense to someone who never saw the code. That gap is where AI adds the most value — and where it's easiest to get wrong.
 
 ---
 
-## 7. `model_card_template.md`
 
-Combines reflection and model card framing from the Module 3 guidance. :contentReference[oaicite:2]{index=2}  
+## Model Card
 
-```markdown
-# 🎧 Model Card - Music Recommender Simulation
-
-## 1. Model Name
-
-Give your recommender a name, for example:
-
-> VibeCheck
+For full documentation of the system's attributes, scoring logic, limitations, and bias analysis, see the [Model Card](model_card.md).
 
 ---
+## Project Structure
 
-## 2. Intended Use
-
-- What is this system trying to do
-- Who is it for
-
-Example:
-
-> This model suggests 3 to 5 songs from a small catalog based on a user's preferred genre, mood, and energy level. It is for classroom exploration only, not for real users.
-
----
-
-## 3. How It Works (Short Explanation)
-
-Describe your scoring logic in plain language.
-
-- What features of each song does it consider
-- What information about the user does it use
-- How does it turn those into a number
-
-Try to avoid code in this section, treat it like an explanation to a non programmer.
-
----
-
-## 4. Data
-
-Describe your dataset.
-
-- How many songs are in `data/songs.csv`
-- Did you add or remove any songs
-- What kinds of genres or moods are represented
-- Whose taste does this data mostly reflect
-
----
-
-## 5. Strengths
-
-Where does your recommender work well
-
-You can think about:
-- Situations where the top results "felt right"
-- Particular user profiles it served well
-- Simplicity or transparency benefits
-
----
-
-## 6. Limitations and Bias
-
-Where does your recommender struggle
-
-Some prompts:
-- Does it ignore some genres or moods
-- Does it treat all users as if they have the same taste shape
-- Is it biased toward high energy or one genre by default
-- How could this be unfair if used in a real product
-
----
-
-## 7. Evaluation
-
-How did you check your system
-
-Examples:
-- You tried multiple user profiles and wrote down whether the results matched your expectations
-- You compared your simulation to what a real app like Spotify or YouTube tends to recommend
-- You wrote tests for your scoring logic
-
-You do not need a numeric metric, but if you used one, explain what it measures.
-
----
-
-## 8. Future Work
-
-If you had more time, how would you improve this recommender
-
-Examples:
-
-- Add support for multiple users and "group vibe" recommendations
-- Balance diversity of songs instead of always picking the closest match
-- Use more features, like tempo ranges or lyric themes
-
----
-
-## 9. Personal Reflection
-
-A few sentences about what you learned:
-
-- What surprised you about how your system behaved
-- How did building this change how you think about real music recommenders
-- Where do you think human judgment still matters, even if the model seems "smart"
-
-The biggest learning moment for me was realizing that getting the code to work is only half the problem. I spent a lot of time thinking about the scoring logic, but when I actually ran it, the results sometimes felt wrong even though the math was correct. That taught me that the data and the weights matter just as much as the code itself. Using AI tools helped me move faster, especially when I was figuring out how to structure the scoring system and what the algorithm recipe should look like. But I still had to double-check things.What surprised me most was how a system with only three rules -- genre, mood, and energy -- could actually feel like it was making real recommendations. When Sunrise City came up as the top result for the pop/happy profile, it genuinely felt right. But then when I ran the conflict profile and got quiet lofi songs for someone who asked for high energy, it reminded me that the system has no common sense. It just follows the math.
-If I extended this project I would want to add more songs to the catalog so rare genres have more than one match, and I would want the system to warn the user when their preferences don't match anything in the catalog. 
-
+```
+Applied_AI_Final_Project-/
+├── app.py                  # Streamlit application entry point
+├── requirements.txt        # Python dependencies
+├── .env                    # API key (not committed to GitHub)
+├── assets/
+│   └── system_architecture.png
+├── data/
+│   └── songs.csv           # 300-song catalog with 14 attributes per song
+├── src/
+│   ├── main.py             # Command-line runner
+│   └── recommender.py      # Scoring engine and data loading
+└── tests/
+    └── test_recommender.py # Pytest test suite
+```
