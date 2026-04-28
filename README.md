@@ -20,7 +20,7 @@ This version keeps the scoring foundation and adds a Gemini AI layer, a Streamli
 
 ## System Architecture
 
-![System Architecture](assets/Gemini Song Recommendation.png)
+![System Architecture](assets/Gemini%20Song%20Recommendation.png)
 
 Six components run in sequence:
 
