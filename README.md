@@ -20,7 +20,7 @@ This version keeps the scoring foundation and adds a Gemini AI layer, a Streamli
 
 ## System Architecture
 
-![System Architecture](assets/system_architecture.png)
+![System Architecture](assets/Gemini Song Recommendation.png)
 
 Six components run in sequence:
 
@@ -242,7 +242,7 @@ Applied_AI_Final_Project-/
 ├── requirements.txt        # Python dependencies
 ├── .env                    # API key (not committed to GitHub)
 ├── assets/
-│   └── system_architecture.png
+│   └── Gemini Song Recommendation.png
 ├── data/
 │   └── songs.csv           # 300-song catalog with 14 attributes per song
 ├── src/
