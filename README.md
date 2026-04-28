@@ -251,3 +251,5 @@ Applied_AI_Final_Project-/
 └── tests/
     └── test_recommender.py # Pytest test suite
 ```
+Walkthrough 
+https://www.loom.com/share/2f052a383c5542f3b063ecd4de78d4ca 
