@@ -264,6 +264,30 @@ A weight shift experiment was also run where genre points were cut in half and e
 
 ---
 
+## 10. Responsible AI Reflection
+
+**What are the limitations or biases in the system?**
+
+The catalog was curated manually, so it reflects one person's taste and cultural background. Genres like pop, lofi, and rock are well represented while others like flamenco, bossa nova, and afrobeats have only a few songs — users whose taste falls outside the mainstream get weaker results. The mood and genre labels are also subjective. The hardcoded mappings in the intent parser (for example, "tired" always maps to chill and low energy) assume everyone responds to feelings the same way, which is not true. The system also has no memory between sessions, so it cannot learn a user's preferences over time. Finally, the free tier API quota limits real usage to roughly 6 conversations per day.
+
+**Could the system be misused, and how would you prevent that?**
+
+The risk is low for a music recommender, but one concern is emotional reinforcement — if a user is feeling very low, the system could keep recommending sad music and deepen that state rather than help. A future safeguard would be detecting distress language and offering a gentler response alongside the recommendations. The AI also mirrors the user's tone, which means someone could push it toward inappropriate language. Adding an output filter would address that.
+
+**What surprised you during testing?**
+
+The quota ran out much faster than expected. Because the app makes three API calls per request, the 20-request daily free tier limit was gone after just a few conversations. The second surprise was the clarification loop — inputs like "tired", "pop", and "Relaxing Music" all triggered the fallback question because quota errors and genuine ambiguity both routed to the same error handler. The user saw a confusing question when the real problem was a service error.
+
+**Collaboration with AI during this project**
+
+AI was used throughout this project for architecture decisions, prompt engineering, and debugging. However, AI suggestions were not followed blindly — human input played a major role in shaping the final result.
+
+One instance where the AI gave a helpful suggestion was the three-stage pipeline design: parse intent → score songs → evaluate results → explain. This structure made the system transparent and easy to understand, which aligned with the project's accessibility goal.
+
+One instance where the AI's suggestion was flawed was the original design of how the system communicated with users. The early version felt too robotic and technical — the questions it asked and the way it responded did not feel natural for someone just trying to find music. Feedback from real people, not the AI, was what identified this problem. Their input drove changes to the tone, the onboarding instructions, and the way the app asks follow-up questions — none of which the AI flagged as issues on its own. The lesson was that AI can build a system that works correctly but still miss whether it feels right to a real person.
+
+---
+
 ## 9. Personal Reflection
 
 Building this showed me that a recommender is only as good as the data behind it. The scoring logic worked exactly as designed, but the results still felt wrong in some cases -- not because the code was broken, but because the catalog was too small or unbalanced. That was unexpected. I assumed getting the math right was the hard part, but choosing what to score and how much weight to give each thing turned out to matter just as much. It also made me think differently about apps like Spotify. When a recommendation feels off, it is probably not a bug -- it is the system making a trade-off between different signals, just like VibeCheck does.

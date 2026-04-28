@@ -205,6 +205,13 @@ The scoring engine has no way to detect conflicting preferences. A lofi request 
 
 Doubling the energy weight and halving the genre weight made things worse — a dark synthwave song tied with a happy pop song purely on energy proximity. Emotional fit can't be captured by one number.
 
+**Runtime failures during live testing**
+
+- The free tier quota (20 requests/day) ran out after ~6 conversations since the app makes 3 API calls per request.
+- When quota hit zero, the retry logic added delay but never recovered — the daily limit was exhausted, not temporarily blocked.
+- Every failed API call showed the same fallback question ("Could you describe the mood or style you are looking for?") even when the user typed something clear like "tired" or "pop." The user had no way to know the real issue was a quota error.
+- The original UI had no explanation of what the app does or how to use it, which was confusing for new users.
+
 **What was learned**
 
 A scoring system can be mathematically correct and still feel wrong. When *Nightcall* ranked above *Sunrise City* for a happy pop user, the algorithm did nothing wrong — the weights just didn't capture what "fitting" means. That's the core reason for the Gemini evaluation layer: the engine picks candidates, and Gemini checks whether they actually make sense.
