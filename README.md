@@ -1,255 +1,713 @@
 # VibeCheck — AI-Powered Music Recommender
 
-## Title and Summary
+**VibeCheck** is a hybrid AI music recommender. Describe how you want to feel — *"something dark and cinematic for a late-night drive"* — and VibeCheck turns that request into personalized song recommendations.
 
-**VibeCheck** is an AI-powered music recommender. Describe how you want to feel — *"something dark and cinematic for a late night drive"* — and it figures out the rest.
+The system combines **Gemini 2.5 Flash** for natural-language understanding and recommendation evaluation with a deterministic **content-based scoring engine** operating over a curated catalog of **300 songs across 78 genres**.
 
-A Gemini-powered agent interprets your request, scores a curated catalog of 300 tracks, and evaluates the results before surfacing them. Every recommendation includes a plain-language explanation and a direct YouTube link.
-
-VibeCheck integrates three AI features in one app — Retrieval-Augmented Generation, an Agentic Workflow, and a Reliability/Testing System — making it usable by anyone without technical knowledge.
+Every recommendation includes a plain-language explanation and a direct YouTube link.
 
 ---
 
-## Original Project — Modules 1–3
+## Features
 
-This builds on **VibeCheck 1.0**, a rule-based CLI recommender from Modules 1–3. That version had no AI, required numeric inputs, and ran on 24 hardcoded songs. It showed where content-based filtering succeeds and where it breaks down.
+* Natural-language music requests
+* Gemini-powered intent parsing
+* Content-based song ranking
+* 300-song curated catalog
+* 78 supported genres
+* Genre-family and mood-family matching
+* Energy-based recommendation scoring
+* Lyrical intensity and lyrical theme matching
+* AI confidence and contradiction evaluation
+* Low-confidence retry behavior
+* Session-based taste profile
+* Like / Skip feedback
+* Replacement recommendations for skipped songs
+* AI-generated recommendation explanations
+* Direct YouTube links
+* Structured logging
+* Pytest testing
+* Streamlit chat interface
 
-This version keeps the scoring foundation and adds a Gemini AI layer, a Streamlit chat interface, a 300-song catalog across 78 genres, and three integrated AI features that address every gap the original exposed.
+---
+
+## Tech Stack
+
+* **Python**
+* **Streamlit**
+* **Gemini 2.5 Flash**
+* **Google GenAI SDK**
+* **Pytest**
+* **python-dotenv**
+* **CSV**
 
 ---
 
 ## System Architecture
 
-![System Architecture](assets/Gemini%20Song%20Recommendation.png)
+```mermaid
+flowchart TD
+    A[User Request] --> B[Streamlit UI]
+    B --> C[Gemini Intent Parser]
 
-Six components run in sequence:
+    C -->|Unclear Input| D[Ask Follow-Up Question]
+    D --> A
 
-1. **Streamlit UI** — chat interface; returns song cards with explanations and YouTube links.
-2. **Gemini Agent** — parses natural language into structured preferences; asks one clarifying question if the request is ambiguous.
-3. **RAG Retriever** — retrieves catalog candidates before generation (retrieve first, then generate).
-4. **Recommender Engine** — scores songs on genre, mood, energy, and lyrical fields using weighted rules.
-5. **Gemini Evaluator** — checks confidence, flags weak matches, detects contradictions, and verifies playlist cohesion before results are shown.
-6. **Logger** — writes every request, API call, score, and error to a structured log file.
+    C -->|Structured Preferences| E[Content-Based Recommender]
 
-Users interact at two points: the initial request and the feedback loop (Like/Skip, which the agent uses to adjust).
+    F[300-Song Catalog] --> E
+
+    E --> G[Weighted Scoring and Ranking]
+    G --> H[Top Recommendations]
+
+    H --> I[Gemini Reliability Evaluator]
+
+    I -->|Low Confidence| J[Relax Preferences]
+    J --> E
+
+    I -->|Accepted| K[Gemini Explanation Generator]
+
+    K --> L[Song Cards and YouTube Links]
+
+    L --> M[Like / Skip Feedback]
+    M --> N[Session Taste Profile]
+    N --> C
+```
+
+VibeCheck separates the parts of the system that benefit from AI reasoning from the parts that are more predictable and testable with deterministic logic.
 
 ---
 
-## Setup Instructions
+## Recommendation Pipeline
 
-### Requirements
+### 1. Interpret the User Request
 
-- Python 3.10 or higher
-- A Google AI API key
+Users can describe what they want naturally:
 
-
-
-### Step-by-Step Setup
-
-**1. Clone the repository**
-```bash
-git clone https://github.com/Christian101GTZ/Applied_AI_Final_Project-.git
-cd Applied_AI_Final_Project-
+```text
+I need something relaxing while I study.
 ```
 
-**2. Create and activate a virtual environment**
+```text
+Give me something aggressive for the gym.
+```
+
+```text
+I want something calm but with intense lyrics.
+```
+
+Gemini converts the request into structured preferences such as:
+
+```json
+{
+  "genre": "lofi",
+  "mood": "focused",
+  "energy": 0.38,
+  "lyrical_intensity": null,
+  "lyrical_theme": null,
+  "needs_clarification": false
+}
+```
+
+The parser can identify:
+
+* Genre
+* Mood
+* Energy
+* Lyrical intensity
+* Lyrical theme
+
+If the request is too vague to interpret, VibeCheck asks one short follow-up question.
+
+---
+
+### 2. Score the Song Catalog
+
+Gemini does **not** directly choose the songs.
+
+The structured preferences are passed to a deterministic Python recommendation engine that scores songs from the catalog.
+
+### Scoring Weights
+
+| Attribute         | Match       | Score |
+| ----------------- | ----------- | ----: |
+| Genre             | Exact       | +2.00 |
+| Genre             | Same family | +1.00 |
+| Mood              | Exact       | +1.50 |
+| Mood              | Same family | +0.75 |
+| Energy            | Within 0.10 | +1.00 |
+| Energy            | Within 0.25 | +0.50 |
+| Lyrical intensity | Within 0.15 | +0.75 |
+| Lyrical intensity | Within 0.30 | +0.35 |
+| Lyrical theme     | Exact       | +0.50 |
+
+Songs are ranked from highest to lowest score.
+
+---
+
+## Genre and Mood Families
+
+Exact matching alone can be too restrictive.
+
+For example, a user requesting:
+
+```text
+pop
+```
+
+may still enjoy:
+
+```text
+indie pop
+synth-pop
+city pop
+electropop
+```
+
+VibeCheck groups related genres into broader families so similar styles receive partial credit.
+
+Examples include:
+
+* Chill
+* Upbeat
+* Rock
+* Urban
+* Acoustic
+* Electronic
+* Jazz
+* Cinematic
+
+Mood matching works similarly.
+
+For example:
+
+```text
+happy
+fun
+hopeful
+nostalgic
+```
+
+belong to related positive moods, while:
+
+```text
+sad
+melancholic
+dark
+reflective
+emotional
+```
+
+share a darker emotional family.
+
+---
+
+## Song Catalog
+
+VibeCheck uses a curated catalog of **300 songs across 78 genres**.
+
+Each song contains attributes including:
+
+```text
+title
+artist
+genre
+mood
+energy
+tempo
+valence
+danceability
+acousticness
+instrumentalness
+lyrical intensity
+lyrical theme
+YouTube ID
+```
+
+Separating musical and lyrical properties allows the system to understand requests such as:
+
+> *"Something peaceful but with emotionally heavy lyrics."*
+
+without forcing everything into a single mood label.
+
+---
+
+## AI Reliability Evaluation
+
+After the scoring engine produces its top recommendations, Gemini evaluates the result set.
+
+The evaluator checks:
+
+1. Do the songs fit what the user requested?
+2. Are any preferences in conflict with the results?
+3. Do the recommendations work together as a cohesive playlist?
+4. How confident should the system be?
+
+The result includes:
+
+```text
+High confidence
+Medium confidence
+Low confidence
+```
+
+along with a short verdict and any detected contradictions.
+
+---
+
+## Low-Confidence Recovery
+
+VibeCheck does more than display a warning when the recommendation set looks weak.
+
+If the evaluator returns **low confidence**, the system retries the recommendation process with relaxed constraints.
+
+For example:
+
+```text
+Genre: lofi
+Mood: chill
+Energy: 0.90
+```
+
+contains a difficult combination because most lofi tracks in the catalog have much lower energy.
+
+The pipeline can retry without the energy restriction:
+
+```text
+Genre: lofi
+Mood: chill
+```
+
+and then evaluate the new results again.
+
+```text
+Recommendations
+      ↓
+AI Evaluation
+      ↓
+Low Confidence?
+   ┌──────┴──────┐
+  Yes            No
+   ↓              ↓
+Relax          Continue
+Preferences
+   ↓
+Rerank
+```
+
+---
+
+## AI-Generated Explanations
+
+Once the final recommendation set is accepted, Gemini generates a conversational explanation for each song.
+
+Instead of exposing raw scoring output such as:
+
+```text
+genre match (+2.0)
+mood match (+1.5)
+energy close match (+1.0)
+```
+
+the user receives a natural explanation of why the song fits their request.
+
+The explanation generator also attempts to mirror the tone of the user's message.
+
+---
+
+## Session Personalization
+
+VibeCheck maintains a lightweight taste profile during the current session.
+
+It tracks:
+
+* Recently requested genres
+* Recently requested moods
+* Average requested energy
+* Number of recommendation requests
+
+When a later request is vague, that context can help the intent parser understand what the user is likely looking for.
+
+---
+
+## Like / Skip Feedback
+
+Each recommendation includes **Like** and **Skip** controls.
+
+### Like
+
+Liked songs contribute information about:
+
+* Preferred genres
+* Preferred moods
+* Average energy
+
+This information can influence later recommendations during the session.
+
+### Skip
+
+The recommender initially keeps additional ranked songs in reserve.
+
+```text
+Top 10 Ranked Songs
+        ↓
+Top 5 → Displayed
+Next 5 → Reserve Pool
+```
+
+When a user skips a recommendation, VibeCheck replaces it with the next song from the reserve pool.
+
+---
+
+## Sample Interactions
+
+### Example 1 — Strong Match: High-Energy Pop
+
+User profile:
+
+```text
+Genre: pop
+Mood: happy
+Energy: 0.92
+```
+
+Example scoring output:
+
+```text
+#1 Happy — Pharrell Williams
+Genre: pop | Mood: happy | Energy: 0.82
+Score: 4.50
+Why: genre match (+2.0); mood match (+1.5); energy close match (+1.0)
+
+#2 Watermelon Sugar — Harry Styles
+Genre: pop | Mood: happy | Energy: 0.80
+Score: 4.00
+Why: genre match (+2.0); mood match (+1.5); energy partial match (+0.5)
+
+#3 Blinding Lights — The Weeknd
+Genre: pop | Mood: fun | Energy: 0.90
+Score: 3.75
+Why: genre match (+2.0); similar mood (+0.75); energy close match (+1.0)
+```
+
+The highest-ranked result matches all three primary dimensions.
+
+---
+
+### Example 2 — Conflicting Preferences
+
+User profile:
+
+```text
+Genre: lofi
+Mood: chill
+Energy: 0.90
+```
+
+Example results:
+
+```text
+#1 Aruarian Dance — Nujabes
+Genre: lofi | Mood: chill | Energy: 0.38
+Score: 3.50
+
+#2 South of the River — Tom Misch ft. Loyle Carner
+Genre: lofi | Mood: chill | Energy: 0.35
+Score: 3.50
+```
+
+The deterministic scoring engine gives strong genre and mood points even though the songs are far from the requested energy.
+
+This exposed a weakness in purely weighted recommendation systems and helped motivate the AI reliability layer.
+
+---
+
+### Example 3 — Jazz
+
+User profile:
+
+```text
+Genre: jazz
+Mood: relaxed
+Energy: 0.37
+```
+
+Example results:
+
+```text
+#1 Come Away With Me — Norah Jones
+Genre: jazz | Mood: relaxed | Energy: 0.38
+Score: 4.50
+
+#2 Take Five — Dave Brubeck Quartet
+Genre: jazz | Mood: relaxed | Energy: 0.45
+Score: 4.50
+
+#3 Don't Know Why — Norah Jones
+Genre: jazz | Mood: chill | Energy: 0.38
+Score: 3.75
+```
+
+Expanding the catalog significantly improved niche-genre recommendations compared with the original prototype.
+
+---
+
+## Design Decisions
+
+### Why Content-Based Filtering?
+
+Collaborative filtering normally relies on behavior from many users.
+
+VibeCheck does not have a large user-history dataset, so content-based filtering allows recommendations to work immediately using song attributes.
+
+The trade-off is that the system is better at finding music similar to what the user describes than discovering preferences completely outside that description.
+
+---
+
+### Why Gemini?
+
+Requests such as:
+
+> *"Something relaxing but with intense lyrics."*
+
+contain multiple dimensions.
+
+A simple keyword matcher cannot easily distinguish between the sound of a song and the emotional weight of its lyrics.
+
+Gemini is used to interpret this kind of natural-language nuance while the deterministic recommender remains responsible for selecting songs from the catalog.
+
+---
+
+### Why Not Let Gemini Recommend Songs Directly?
+
+The song catalog remains the source of truth.
+
+Letting the model freely invent recommendations could introduce:
+
+* Songs outside the catalog
+* Incorrect metadata
+* Unpredictable ranking
+* Hard-to-test behavior
+
+Instead:
+
+```text
+Gemini → Understand intent
+
+Python → Rank catalog songs
+
+Gemini → Evaluate and explain
+```
+
+---
+
+### Why Separate Lyrics From Mood?
+
+A song can sound calm while carrying emotionally intense lyrics.
+
+Using separate fields for:
+
+```text
+mood
+lyrical intensity
+lyrical theme
+```
+
+allows the system to distinguish those characteristics instead of treating them as the same thing.
+
+---
+
+### Why a Curated Catalog?
+
+A very large external catalog can introduce inconsistent or noisy metadata.
+
+The curated 300-song dataset is intentionally small enough to inspect and test while still covering a wide range of styles.
+
+---
+
+## Testing Summary
+
+### What Worked
+
+The scoring algorithm performed well for standard profiles such as:
+
+* High-energy pop
+* Chill lofi
+* Intense rock
+* Synthwave
+
+Genre and mood families also allowed related styles to appear without requiring exact matches.
+
+Expanding the catalog improved niche recommendations significantly.
+
+---
+
+### What Failed
+
+One important failure involved conflicting preferences.
+
+A request for:
+
+```text
+lofi + chill + energy 0.90
+```
+
+still ranked quiet lofi tracks highly because genre and mood contributed more points than energy.
+
+Increasing the importance of energy did not solve the problem cleanly.
+
+For example, giving energy too much weight caused songs with the wrong emotional tone to compete with much better stylistic matches simply because their numeric energy values were close.
+
+The lesson was that recommendation quality cannot always be fixed by changing a single weight.
+
+---
+
+### Runtime Failures
+
+Live testing also exposed external-service limitations:
+
+* Gemini API quotas can interrupt recommendations.
+* Retry logic cannot recover from a fully exhausted daily quota.
+* Generic fallback messages can hide the difference between invalid input and an API failure.
+
+These cases highlighted the importance of distinguishing user errors from infrastructure failures.
+
+---
+
+## What I Learned
+
+A recommendation system can be mathematically correct and still feel wrong.
+
+The hardest part of VibeCheck was not simply calling an AI model. It was deciding what the AI should control and what should remain deterministic.
+
+The architecture that worked best was:
+
+```text
+AI understands the request
+        ↓
+Algorithm ranks candidates
+        ↓
+AI evaluates the result
+        ↓
+AI explains the recommendation
+```
+
+Data quality and scoring design were just as important as the model itself.
+
+The goal became more than returning results — it became returning results that make sense to someone who never saw the scoring algorithm.
+
+---
+
+## Model Card
+
+For documentation of the recommendation system's scoring logic, limitations, and responsible-AI considerations, see:
+
+[`model_card.md`](./model_card.md)
+
+---
+
+## Project Structure
+
+```text
+Vibe_Check/
+├── app.py
+├── requirements.txt
+├── model_card.md
+├── reflection.md
+│
+├── assets/
+│   └── Gemini Song Recommendation.png
+│
+├── data/
+│   └── songs.csv
+│
+├── src/
+│   ├── main.py
+│   └── recommender.py
+│
+└── tests/
+    └── test_recommender.py
+```
+
+---
+
+## Running Locally
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/Christian101GTZ/Vibe_Check.git
+cd Vibe_Check
+```
+
+### 2. Create a Virtual Environment
+
+**Windows**
+
 ```bash
 python -m venv .venv
-
-# Mac or Linux
-source .venv/bin/activate
-
-# Windows
 .venv\Scripts\activate
 ```
 
-**3. Install dependencies**
+**macOS / Linux**
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+### 3. Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-**4. Set up your API key**
+### 4. Configure Gemini
 
-Create a file named `.env` in the project root with the following content:
-```
+Create a `.env` file:
+
+```env
 GOOGLE_API_KEY=your-api-key-here
 ```
 
-This file is listed in `.gitignore` and will never be pushed to GitHub.
+The `.env` file is excluded from Git through `.gitignore`.
 
-**5. Run the application**
+### 5. Start VibeCheck
+
 ```bash
 streamlit run app.py
 ```
 
-Your browser will open automatically at `http://localhost:8501`.
+### 6. Run Tests
 
-**6. Run the test suite**
 ```bash
 pytest
 ```
 
 ---
 
-## Sample Interactions
+## Project Evolution
 
-Raw scoring output is shown below. In the full app, Gemini replaces these rule strings with natural language explanations.
+VibeCheck began as a small rule-based command-line recommender using **24 songs** and manually entered preference values.
 
----
+The current version expands that foundation with:
 
-**Example 1 — Strong match: High-Energy Pop**
+* 300 songs
+* 78 genres
+* Natural-language requests
+* Gemini intent parsing
+* Lyrical preference modeling
+* Recommendation reliability evaluation
+* Session personalization
+* Like / Skip feedback
+* Streamlit interface
+* Logging
+* Automated testing
 
-User profile: genre = pop, mood = happy, energy = 0.92
-
-```
-#1  Happy -- Pharrell Williams
-    Genre: pop | Mood: happy | Energy: 0.82
-    Score: 4.50
-    Why: genre match (+2.0); mood match (+1.5); energy close match: 0.82 ~= 0.92 (+1.0)
-
-#2  Watermelon Sugar -- Harry Styles
-    Genre: pop | Mood: happy | Energy: 0.80
-    Score: 4.00
-    Why: genre match (+2.0); mood match (+1.5); energy partial match: 0.80 near 0.92 (+0.5)
-
-#3  Blinding Lights -- The Weeknd
-    Genre: pop | Mood: fun | Energy: 0.90
-    Score: 3.75
-    Why: genre match (+2.0); similar mood: fun is in the same family as happy (+0.75); energy close match: 0.90 ~= 0.92 (+1.0)
-```
-
-Happy ranked first (all three dimensions matched). Watermelon Sugar second (weaker energy match). Blinding Lights third — closer in energy but only a partial mood match.
+The system evolved by identifying where the deterministic recommender performed well, where it failed, and adding AI only where natural-language reasoning provided a clear benefit.
 
 ---
 
-**Example 2 — Edge case: Contradicting preferences**
+## Demo
 
-User profile: genre = lofi, mood = chill, energy = 0.90
-
-```
-#1  Aruarian Dance -- Nujabes
-    Genre: lofi | Mood: chill | Energy: 0.38
-    Score: 3.50
-    Why: genre match (+2.0); mood match (+1.5); no energy points — too far from 0.90
-
-#2  South of the River -- Tom Misch ft. Loyle Carner
-    Genre: lofi | Mood: chill | Energy: 0.35
-    Score: 3.50
-    Why: genre match (+2.0); mood match (+1.5); no energy points — too far from 0.90
-```
-
-Genre and mood outweigh energy in the point totals, so the rule engine returns quiet lofi regardless. The Gemini Agent catches this before scoring and warns: *"Your energy preference (0.90) conflicts with lofi — most lofi songs sit between 0.28 and 0.42."*
-
----
-
-**Example 3 — Rare genre: Jazz**
-
-User profile: genre = jazz, mood = relaxed, energy = 0.37
-
-```
-#1  Come Away With Me -- Norah Jones
-    Genre: jazz | Mood: relaxed | Energy: 0.38
-    Score: 4.50
-    Why: genre match (+2.0); mood match (+1.5); energy close match: 0.38 ~= 0.37 (+1.0)
-
-#2  Take Five -- Dave Brubeck Quartet
-    Genre: jazz | Mood: relaxed | Energy: 0.45
-    Score: 4.50
-    Why: genre match (+2.0); mood match (+1.5); energy close match: 0.45 ~= 0.37 (+1.0)
-
-#3  Don't Know Why -- Norah Jones
-    Genre: jazz | Mood: chill | Energy: 0.38
-    Score: 3.75
-    Why: genre match (+2.0); similar mood: chill is in the same family as relaxed (+0.75); energy close match: 0.38 ~= 0.37 (+1.0)
-```
-
-With 9 jazz songs in the catalog, the profile returns genuine variety — compared to the single match it found in the original 24-song version.
-
----
-
-## Design Decisions
-
-**Why content-based filtering instead of collaborative filtering**
-
-Collaborative filtering needs user history from many people. This system has none. Content-based filtering works from song attributes alone, so it can recommend immediately for any new user. The trade-off: it can't surface things the user didn't already describe wanting.
-
-**Why Gemini instead of a simpler model**
-
-"Something relaxing but with intense lyrics" describes two dimensions at once — sonic texture and lyrical weight. A keyword matcher can't separate those. Gemini understands the nuance, asks one clarifying question when needed, and writes explanations that sound human rather than algorithmic.
-
-**Why separate lyrical fields from mood**
-
-*Holocene* by Bon Iver sounds calm but carries heavy lyrical weight. A single `mood` field can't capture that. Separate `lyrical_intensity` and `lyrical_theme` fields let the system handle requests like *"calm to study to but with meaningful lyrics"* without conflating the two.
-
-**Why a curated catalog instead of a larger database**
-
-Importing thousands of songs from an API introduces noise — mislabeled moods, inaccurate energy values, genre tags that don't match the listening experience. The 300-song catalog spans 78 genres and keeps the system's behavior predictable and testable.
-
-**Why Streamlit instead of a custom web framework**
-
-The entire app runs in a browser from a single Python file with no frontend code. For a project focused on AI logic, that removes unnecessary friction. The trade-off is limited UI customization, which doesn't matter here.
-
----
-
-## Testing Summary
-
-**What worked**
-
-The scoring algorithm held up across all standard profiles — pop, lofi, rock, and synthwave users consistently got a top pick matching all three dimensions. The family system surfaced related songs (indie pop for pop users, dream pop for ambient users) without needing exact matches.
-
-The 78-genre catalog fixed the most significant failure from the original version. Jazz previously returned one good match and four unrelated songs. With 9 jazz songs and 8 genre families, niche requests now have real candidates.
-
-**What failed**
-
-The scoring engine has no way to detect conflicting preferences. A lofi request with energy 0.9 still returns quiet lofi songs because genre and mood score more points than energy. This is intentionally delegated to the Gemini Agent, which warns the user at input time rather than silently returning bad results.
-
-Doubling the energy weight and halving the genre weight made things worse — a dark synthwave song tied with a happy pop song purely on energy proximity. Emotional fit can't be captured by one number.
-
-**Runtime failures during live testing**
-
-- The free tier quota (20 requests/day) ran out after ~6 conversations since the app makes 3 API calls per request.
-- When quota hit zero, the retry logic added delay but never recovered — the daily limit was exhausted, not temporarily blocked.
-- Every failed API call showed the same fallback question ("Could you describe the mood or style you are looking for?") even when the user typed something clear like "tired" or "pop." The user had no way to know the real issue was a quota error.
-- The original UI had no explanation of what the app does or how to use it, which was confusing for new users.
-
-**What was learned**
-
-A scoring system can be mathematically correct and still feel wrong. When *Nightcall* ranked above *Sunrise City* for a happy pop user, the algorithm did nothing wrong — the weights just didn't capture what "fitting" means. That's the core reason for the Gemini evaluation layer: the engine picks candidates, and Gemini checks whether they actually make sense.
-
----
-
-## Reflection
-
-The hardest part of building VibeCheck wasn't the model — it was the layer between the human and the model. Getting Gemini to return JSON is easy. Getting it to ask exactly one useful question, understand that *"something intense"* could mean Kendrick Lamar or Hans Zimmer, and evaluate whether five songs work as a playlist rather than five isolated picks — that's where the real work is.
-
-Data quality and weight selection matter as much as the algorithm. No scoring formula knows that a user who says "chill" but always skips songs below 100 BPM means something different by chill than the label implies. That's what the AI layer is for.
-
-The biggest lesson: a system that *works* returns results. A system that *feels intelligent* returns results that make sense to someone who never saw the code. That gap is where AI adds the most value — and where it's easiest to get wrong.
-
----
-
-
-## Model Card
-
-For full documentation of the system's attributes, scoring logic, limitations, and bias analysis, see the [Model Card](model_card.md).
-
----
-## Project Structure
-
-```
-Applied_AI_Final_Project-/
-├── app.py                  # Streamlit application entry point
-├── requirements.txt        # Python dependencies
-├── .env                    # API key (not committed to GitHub)
-├── assets/
-│   └── Gemini Song Recommendation.png
-├── data/
-│   └── songs.csv           # 300-song catalog with 14 attributes per song
-├── src/
-│   ├── main.py             # Command-line runner
-│   └── recommender.py      # Scoring engine and data loading
-└── tests/
-    └── test_recommender.py # Pytest test suite
-```
-Walkthrough 
-https://www.loom.com/share/2f052a383c5542f3b063ecd4de78d4ca 
+[Watch the VibeCheck walkthrough](https://www.loom.com/share/2f052a383c5542f3b063ecd4de78d4ca)
